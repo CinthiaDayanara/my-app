@@ -27,7 +27,7 @@ jobs:
           # Cambiar permisos si es necesario
           sudo chmod -R 755 /var/www/html
           # Reiniciar Apache para asegurar los cambios
-          sudo systemctl restart httpd
+          
 
  
 
