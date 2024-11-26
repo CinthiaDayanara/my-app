@@ -28,7 +28,11 @@ jobs:
       - name: Deploy to EC2
         run: |
           echo "Iniciando despliegue a EC2..."
-          # Copiar los archivos desde la raíz del repositorio al directorio /var/www/html en EC2
-          scp -r ./index.html ./script.js ./styles.css ec2-user@${{ secrets.EC2_HOST }}:/var/www/html
-          # Reiniciar Apache para que se apliquen los cambios
+          # Copiar los archivos a un directorio temporal donde ec2-user tiene permisos
+          scp -r ./index.html ./script.js ./styles.css ec2-user@${{ secrets.EC2_HOST }}:/home/ec2-user/
+          # Mover los archivos a /var/www/html usando sudo
+          ssh ec2-user@${{ secrets.EC2_HOST }} 'sudo mv /home/ec2-user/index.html /var/www/html/index.html'
+          ssh ec2-user@${{ secrets.EC2_HOST }} 'sudo mv /home/ec2-user/script.js /var/www/html/script.js'
+          ssh ec2-user@${{ secrets.EC2_HOST }} 'sudo mv /home/ec2-user/styles.css /var/www/html/styles.css'
+          # Asegurarse de que Apache esté ejecutándose y recargando la configuración
           ssh ec2-user@${{ secrets.EC2_HOST }} 'sudo systemctl restart httpd'
