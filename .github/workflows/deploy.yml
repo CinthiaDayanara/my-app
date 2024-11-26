@@ -16,7 +16,7 @@ jobs:
       - name: Set up SSH key
         uses: webfactory/ssh-agent@v0.5.3  # Configura la clave SSH para conectarse a EC2
         with:
-          ssh-private-key: ${{ secrets.EC2_SSH_KEYSSH_KEY }}  # La clave privada SSH almacenada en GitHub Secrets
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}  # La clave privada SSH almacenada en GitHub Secrets
 
       - name: Add EC2 host to known hosts
         run: |
