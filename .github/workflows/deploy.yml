@@ -23,7 +23,7 @@ jobs:
           # Cambiar a la carpeta del sitio
           cd /var/www/html
           # Descargar los últimos cambios del repositorio
-          sudo git pull origin main
+          sudo git pull origin master
           # Cambiar permisos si es necesario
           sudo chmod -R 755 /var/www/html
           # Reiniciar Apache para asegurar los cambios
