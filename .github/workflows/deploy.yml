@@ -1,33 +1,47 @@
-name: Deploy to EC2
+name: Deploy HTML to EC2
 
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout the repository
+    - name: Check out the code
       uses: actions/checkout@v3
 
     - name: Deploy to EC2
-      uses: appleboy/ssh-action@v0.1.8
+      uses: easingthemes/ssh-deploy@main
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+        REMOTE_HOST: ${{ secrets.HOST_DNS_2 }}
+        REMOTE_USER: ${{ secrets.EC2_USER }}
+        TARGET: ${{ secrets.TARGET_DIR }}
+
+    - name: Executing remote ssh commands to update the HTML site
+      uses: appleboy/ssh-action@master
       with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ec2-user
+        host: ${{ secrets.HOST_DNS_2 }}
+        username: ${{ secrets.EC2_USER }}
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
-          # Cambiar a la carpeta del sitio
-          cd /var/www/html
-          # Descargar los últimos cambios del repositorio
-          sudo git pull origin master
-          # Cambiar permisos si es necesario
-          sudo chmod -R 755 /var/www/html
-          # Reiniciar Apache para asegurar los cambios
-          sudo systemctl restart httpd
+          # Navegar al directorio del sitio web
+          cd ${TARGET}
+
+          # Descargar los últimos cambios desde el repositorio Git
+          sudo git pull origin main
+
+          # Ajustar permisos si es necesario
+          sudo chmod -R 755 ${TARGET}
+
+          # Reiniciar Apache para asegurar que se apliquen los cambios
+          sudo systemctl restart apache2  # Cambia esto por el servicio correcto si usas otro servidor web (por ejemplo, nginx)
+
+          # Confirmar que el sitio está activo
+          echo "HTML site is successfully deployed and running."
 
  
 
