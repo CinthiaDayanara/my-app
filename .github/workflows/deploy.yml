@@ -1,33 +1,33 @@
-name: Deploy to AWS EC2
+name: Deploy to EC2
 
 on:
   push:
     branches:
-      - main  # Ejecutar el flujo de trabajo solo en la rama principal
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3  # Obtiene el código del repositorio
-
-    - name: Set up AWS CLI
-      uses: aws-actions/configure-aws-credentials@v3
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}      # Secreto configurado en GitHub
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1  # Cambia a la región de tu EC2
+    - name: Checkout the repository
+      uses: actions/checkout@v3
 
     - name: Deploy to EC2
-      uses: easingthemes/ssh-deploy@main
-      env:
-        SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}   # Clave privada SSH
-        REMOTE_HOST: ${{ secrets.REMOTE_HOST }}       # Dirección IP pública EC2
-        REMOTE_USER: ${{ secrets.REMOTE_USER }}       # Usuario SSH (e.g., ubuntu)
+      uses: appleboy/ssh-action@v0.1.8
       with:
-        source: ./  # Archivos locales
-        target: /var/www/html/  # Directorio remoto
+        host: ${{ secrets.EC2_HOST }}
+        username: ec2-user
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          # Cambiar a la carpeta del sitio
+          cd /var/www/html
+          # Descargar los últimos cambios del repositorio
+          sudo git pull origin main
+          # Cambiar permisos si es necesario
+          sudo chmod -R 755 /var/www/html
+          # Reiniciar Apache para asegurar los cambios
+          sudo systemctl restart httpd
+
  
 
