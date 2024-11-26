@@ -1,9 +1,9 @@
-name: Deploy HTML to EC2
+name: Deploy HTML Application to EC2
 
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   deploy:
@@ -21,27 +21,23 @@ jobs:
         REMOTE_USER: ${{ secrets.EC2_USER }}
         TARGET: ${{ secrets.TARGET_DIR }}
 
-    - name: Executing remote ssh commands to update the HTML site
+    - name: Executing remote ssh commands using ssh key
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.HOST_DNS_2 }}
         username: ${{ secrets.EC2_USER }}
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
-          # Navegar al directorio del sitio web
-          cd ${TARGET}
-
-          # Descargar los últimos cambios desde el repositorio Git
+          # Acceder al directorio de la aplicación
+          cd /var/www/html
+          
+          # Descargar los últimos cambios desde el repositorio
           sudo git pull origin main
-
-          # Ajustar permisos si es necesario
-          sudo chmod -R 755 ${TARGET}
-
-          # Reiniciar Apache para asegurar que se apliquen los cambios
-          sudo systemctl restart apache2  # Cambia esto por el servicio correcto si usas otro servidor web (por ejemplo, nginx)
-
-          # Confirmar que el sitio está activo
-          echo "HTML site is successfully deployed and running."
-
- 
-
+          
+          # Cambiar los permisos si es necesario
+          sudo chmod -R 755 /var/www/html
+          
+          # Reiniciar Apache o Nginx para asegurar que los cambios sean reflejados
+          sudo systemctl restart apache2  # o "nginx" si usas Nginx
+          
+          echo "HTML Application is deployed and running."
