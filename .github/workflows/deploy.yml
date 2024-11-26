@@ -24,7 +24,11 @@ jobs:
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
         env:
           EC2_IP: ${{ secrets.EC2_HOST }}  # La IP de tu instancia EC2
-
+      - name: Mostrar host de EC2
+        run: |
+            echo "El host de la instancia EC2 es: ${{ secrets.EC2_HOST }}"
+  
+  
       - name: Deploy to EC2
         run: |
           echo "Iniciando despliegue a EC2..."
