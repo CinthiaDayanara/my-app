@@ -3,7 +3,7 @@ name: Deploy to EC2
 on:
   push:
     branches:
-      - main  # Despliega cuando hay cambios en la rama principal
+      - master  # Despliega cuando hay cambios en la rama principal
 
 jobs:
   deploy:
