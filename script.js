@@ -13,4 +13,4 @@ document.getElementById("miBoton").addEventListener("click", function() {
   
     return mensajes[Math.floor(Math.random() * mensajes.length)];
   }
-  
+
