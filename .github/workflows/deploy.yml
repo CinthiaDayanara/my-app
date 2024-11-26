@@ -3,25 +3,32 @@ name: Deploy to EC2
 on:
   push:
     branches:
-      - master  # Despliega cuando hay cambios en la rama principal
+      - main  # Ejecuta el flujo cuando hay un push a la rama 'main'
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest  # Usa un contenedor Ubuntu para correr el job
+    runs-on: ubuntu-latest  # Usa un contenedor Ubuntu para ejecutar los comandos
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2  # Revisa el código del repositorio
+        uses: actions/checkout@v2  # Clona el repositorio
 
-      - name: Set up SSH
-        uses: webfactory/ssh-agent@v0.5.3
+      - name: Set up SSH key
+        uses: webfactory/ssh-agent@v0.5.3  # Configura la clave SSH para conectarse a EC2
         with:
-          ssh-private-key: ${{ secrets.EC2_SSH_KEY}}  # Agrega tu clave privada en los Secrets de GitHub
+          ssh-private-key: ${{ secrets.EC2_SSH_KEYSSH_KEY }}  # La clave privada SSH almacenada en GitHub Secrets
 
-      - name: Copy files to EC2 instance
+      - name: Add EC2 host to known hosts
         run: |
-          scp -r ./path/to/your/files/* ec2-user@${{ secrets.EC2_HOST }}:/var/www/html  # Copia los archivos al servidor EC2
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.EC2_host }} >> ~/.ssh/known_hosts
+        env:
+          EC2_IP: ${{ secrets.EC2_HOST }}  # La IP de tu instancia EC2
 
-      - name: Restart Apache
+      - name: Deploy to EC2
         run: |
-          ssh ec2-user@${{ secrets.EC2_HOST }} "sudo systemctl restart httpd"  # Reinicia Apache para que tome los nuevos archivos
+          echo "Iniciando despliegue a EC2..."
+          # Copia los archivos al servidor EC2 usando SCP
+          scp -r ./path/to/your/files/* ec2-user@${{ secrets.EC2_HOST }}:/var/www/html
+          # Reinicia Apache para que se apliquen los cambios
+          ssh ec2-user@${{ secrets.EC2_HOST }} 'sudo systemctl restart httpd'
