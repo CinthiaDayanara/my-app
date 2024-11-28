@@ -1,12 +1,12 @@
-name: Deploy to EC2 for QA
+name: Deploy to EC2 for QA and Create Pull Request to Master
 
 on:
   push:
     branches:
-      - qa  # Ejecuta el flujo cuando hay un push a la rama 'qa'
+      - qa  # Este flujo se ejecuta cuando hay un push a la rama 'qa'
 
 jobs:
-  deploy:
+  deploy-to-first-ec2:
     runs-on: ubuntu-latest  # Usa un contenedor Ubuntu para ejecutar los comandos
 
     steps:
@@ -25,13 +25,9 @@ jobs:
         env:
           EC2_IP: ${{ secrets.EC2_HOST }}  # La IP de tu instancia EC2
 
-      - name: Mostrar host de EC2
+      - name: Deploy to first EC2
         run: |
-            echo "El host de la instancia EC2 es: ${{ secrets.EC2_HOST }}"
-  
-      - name: Deploy to EC2
-        run: |
-          echo "Iniciando despliegue a EC2..."
+          echo "Iniciando despliegue a la primera instancia EC2..."
           # Copiar los archivos a un directorio temporal donde ec2-user tiene permisos
           scp -r ./index.html ./script.js ./styles.css ec2-user@${{ secrets.EC2_HOST }}:/home/ec2-user/
           # Mover los archivos a /var/www/html usando sudo
@@ -40,3 +36,71 @@ jobs:
           ssh ec2-user@${{ secrets.EC2_HOST }} 'sudo mv /home/ec2-user/styles.css /var/www/html/styles.css'
           # Asegurarse de que Apache esté ejecutándose y recargando la configuración
           ssh ec2-user@${{ secrets.EC2_HOST }} 'sudo systemctl restart httpd'
+  
+  create-pull-request:
+    runs-on: ubuntu-latest  # Ejecuta esta tarea en un contenedor Ubuntu
+    needs: deploy-to-first-ec2  # Solo se ejecuta si el paso anterior fue exitoso
+
+    steps:
+      - name: Set up Git
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+      - name: Create Pull Request to master
+        run: |
+          # Crear un Pull Request desde la rama 'qa' hacia 'master' si el despliegue fue exitoso
+          gh pr create --title "Merge QA into Master" --body "Este es un Pull Request automatizado para fusionar los últimos cambios de QA a Master." --base master --head qa
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Token de GitHub para autenticación
+
+  deploy-to-other-ec2-instances:
+    runs-on: ubuntu-latest  # Usa un contenedor Ubuntu para ejecutar los comandos
+    needs: create-pull-request  # Se ejecuta después de la creación del PR
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2  # Clona el repositorio
+
+      - name: Set up SSH key
+        uses: webfactory/ssh-agent@v0.5.3  # Configura la clave SSH para conectarse a EC2
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}  # La clave privada SSH almacenada en GitHub Secrets
+
+      - name: Add EC2 hosts to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.EC2_HOST1 }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.EC2_HOST2 }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.EC2_HOST4 }} >> ~/.ssh/known_hosts
+        env:
+          EC2_IP1: ${{ secrets.EC2_HOST1 }}  # IP de la primera instancia EC2
+          EC2_IP2: ${{ secrets.EC2_HOST2 }}  # IP de la segunda instancia EC2
+          EC2_IP3: ${{ secrets.EC2_HOST4 }}  # IP de la tercera instancia EC2
+
+      - name: Deploy to second EC2
+        run: |
+          echo "Desplegando a la segunda instancia EC2..."
+          scp -r ./index.html ./script.js ./styles.css ec2-user@${{ secrets.EC2_HOST1 }}:/home/ec2-user/
+          ssh ec2-user@${{ secrets.EC2_HOST1 }} 'sudo mv /home/ec2-user/index.html /var/www/html/index.html'
+          ssh ec2-user@${{ secrets.EC2_HOST1 }} 'sudo mv /home/ec2-user/script.js /var/www/html/script.js'
+          ssh ec2-user@${{ secrets.EC2_HOST1 }} 'sudo mv /home/ec2-user/styles.css /var/www/html/styles.css'
+          ssh ec2-user@${{ secrets.EC2_HOST1 }} 'sudo systemctl restart httpd'
+
+      - name: Deploy to third EC2
+        run: |
+          echo "Desplegando a la tercera instancia EC2..."
+          scp -r ./index.html ./script.js ./styles.css ec2-user@${{ secrets.EC2_HOST2 }}:/home/ec2-user/
+          ssh ec2-user@${{ secrets.EC2_HOST2 }} 'sudo mv /home/ec2-user/index.html /var/www/html/index.html'
+          ssh ec2-user@${{ secrets.EC2_HOST2 }} 'sudo mv /home/ec2-user/script.js /var/www/html/script.js'
+          ssh ec2-user@${{ secrets.EC2_HOST2 }} 'sudo mv /home/ec2-user/styles.css /var/www/html/styles.css'
+          ssh ec2-user@${{ secrets.EC2_HOST2 }} 'sudo systemctl restart httpd'
+
+      - name: Deploy to fourth EC2
+        run: |
+          echo "Desplegando a la cuarta instancia EC2..."
+          scp -r ./index.html ./script.js ./styles.css ec2-user@${{ secrets.EC2_HOST3 }}:/home/ec2-user/
+          ssh ec2-user@${{ secrets.EC2_HOST4 }} 'sudo mv /home/ec2-user/index.html /var/www/html/index.html'
+          ssh ec2-user@${{ secrets.EC2_HOST4 }} 'sudo mv /home/ec2-user/script.js /var/www/html/script.js'
+          ssh ec2-user@${{ secrets.EC2_HOST4 }} 'sudo mv /home/ec2-user/styles.css /var/www/html/styles.css'
+          ssh ec2-user@${{ secrets.EC2_HOST4 }} 'sudo systemctl restart httpd'
