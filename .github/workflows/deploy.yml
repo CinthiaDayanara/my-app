@@ -31,7 +31,7 @@ jobs:
     if: success()   # Solo se ejecuta si las pruebas de QA son exitosas
 
     steps:
-      - name: Create pull request to main
+      - name: Create pull request to master
         run: |
           gh pr create --title "QA Passed - Pull Request" --body "Este pull request se crea después de pasar las pruebas de QA" --base main --head qa
         env:
