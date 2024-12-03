@@ -58,7 +58,7 @@ jobs:
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
           ssh-keyscan -H ${{ secrets.EC2_HOST1 }} >> ~/.ssh/known_hosts
           ssh-keyscan -H ${{ secrets.EC2_HOST2 }} >> ~/.ssh/known_hosts
-          ssh-keyscan -H ${{ secrets.EC2_HOST3 }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.EC2_HOST4 }} >> ~/.ssh/known_hosts
         env:
           EC2_HOST: ${{ secrets.EC2_HOST }}  # La IP de tu instancia EC2
 
@@ -67,7 +67,7 @@ jobs:
           echo "Iniciando despliegue a EC2..."
           
           # Desplegar archivos a todas las instancias
-          for HOST in ${{ secrets.EC2_HOST }} ${{ secrets.EC2_HOST1 }} ${{ secrets.EC2_HOST2 }} ${{ secrets.EC2_HOST3 }}
+          for HOST in ${{ secrets.EC2_HOST }} ${{ secrets.EC2_HOST1 }} ${{ secrets.EC2_HOST2 }} ${{ secrets.EC2_HOST4 }}
           do
             echo "Desplegando a $HOST"
             # Copiar los archivos a un directorio temporal donde ec2-user tiene permisos
