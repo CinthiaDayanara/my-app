@@ -3,7 +3,7 @@ name: Deploy to EC2
 on:
   push:
     branches:
-      - master  # Ejecuta el flujo cuando hay un push a la rama 'main'
+      - master  # Ejecuta el flujo cuando hay un push a la rama 'master'
 
 jobs:
   deploy:
