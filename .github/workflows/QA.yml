@@ -1,35 +1,37 @@
-name: Deploy to EC2
+name: Deploy to EC2 for QA
 
 on:
   push:
     branches:
-      - master  # Ejecuta el flujo cuando hay un push a la rama 'main'
+      - qa  # Ejecuta el flujo cuando hay un push a la rama 'qa'
 
 jobs:
   deploy:
     runs-on: ubuntu-latest  # Usa un contenedor Ubuntu para ejecutar los comandos
 
     steps:
-      # Clonar el repositorio
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v2  # Clona el repositorio...
 
       - name: Set up SSH key
         uses: webfactory/ssh-agent@v0.5.3  # Configura la clave SSH para conectarse a EC2
         with:
-          ssh-private-key: ${{ secrets.ec2_SSH_KEY }}  # La clave privada SSH almacenada en GitHub Secrets
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}  # La clave privada SSH almacenada en GitHub Secrets
 
       - name: Add EC2 host to known hosts
         run: |
           mkdir -p ~/.ssh
-          # Añadir todas las instancias EC2 a los conocidos
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.EC2_HOST1 }} >> ~/.ssh/known_hosts
+       
+          ssh-keyscan -H ${{ secrets.EC2_HOST2 }} >> ~/.ssh/known_hosts
+           ssh-keyscan -H ${{ secrets.EC2_HOST4 }} >> ~/.ssh/known_hosts
         env:
           EC2_IP: ${{ secrets.EC2_HOST }}  # La IP de tu instancia EC2
+
       - name: Mostrar host de EC2
         run: |
             echo "El host de la instancia EC2 es: ${{ secrets.EC2_HOST }}"
-  
   
       - name: Deploy to EC2
         run: |
