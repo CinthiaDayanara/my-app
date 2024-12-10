@@ -52,7 +52,7 @@ jobs:
           # Crear un Pull Request desde la rama 'qa' hacia 'master' si el despliegue fue exitoso
           gh pr create --title "Merge QA into Master" --body "Este es un Pull Request automatizado para fusionar los últimos cambios de QA a Master." --base master --head qa
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Token de GitHub para autenticación
+          GITHUB_TOKEN: ${{ secrets.MY_ACCESS_TOKEN }}  # Token de GitHub para autenticación
 
   deploy-to-other-ec2-instances:
     runs-on: ubuntu-latest  # Usa un contenedor Ubuntu para ejecutar los comandos
@@ -99,7 +99,7 @@ jobs:
       - name: Deploy to fourth EC2
         run: |
           echo "Desplegando a la cuarta instancia EC2..."
-          scp -r ./index.html ./script.js ./styles.css ec2-user@${{ secrets.EC2_HOST3 }}:/home/ec2-user/
+          scp -r ./index.html ./script.js ./styles.css ec2-user@${{ secrets.EC2_HOST4 }}:/home/ec2-user/
           ssh ec2-user@${{ secrets.EC2_HOST4 }} 'sudo mv /home/ec2-user/index.html /var/www/html/index.html'
           ssh ec2-user@${{ secrets.EC2_HOST4 }} 'sudo mv /home/ec2-user/script.js /var/www/html/script.js'
           ssh ec2-user@${{ secrets.EC2_HOST4 }} 'sudo mv /home/ec2-user/styles.css /var/www/html/styles.css'
