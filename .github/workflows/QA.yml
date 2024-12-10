@@ -23,7 +23,7 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
         env:
-          EC2_IP: ${{ secrets.EC2_HOST }}  # La IP de tu instancia EC2
+          EC2_IP: ${{ secrets.EC2_HOST }}  # La IP de tu ins
 
       - name: Deploy to first EC2
         run: |
